@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ECS
 {
@@ -60,10 +61,10 @@ namespace ECS
                     continue;
 
                 world.AddComponent(ent, new Position());
-                world.AddComponent(ent, new Velocity() { X = rng.Next(100), Y = rng.Next(100) });
+                world.AddComponent(ent, new Velocity() { X = rng.Next(-100, 100), Y = rng.Next(-100, 100) });
 
                 world2.AddComponent(ent, new Position());
-                world2.AddComponent(ent, new Velocity() { X = rng.Next(100), Y = rng.Next(100) });
+                world2.AddComponent(ent, new Velocity() { X = rng.Next(-100, 100), Y = rng.Next(-100, 100) });
             }
 
             while (true)
@@ -87,8 +88,6 @@ namespace ECS
                     if (velocitySystem.Signature.EntityMatch(w, i))
                         Console.WriteLine("{0} - {1}", i, w.GetComponent<Position>(i));
                 }
-
-                System.Threading.Thread.Sleep(500);
             }
         }
     }

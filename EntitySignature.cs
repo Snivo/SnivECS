@@ -22,7 +22,7 @@ namespace ECS
         {
             Type t = typeof(T);
 
-            if (LookupComponent<T>() != -1)
+            if (internalTypeIDLookup.ContainsKey(t))
                 return;
             
             int idx = internalTypeIDLookup.Count;
