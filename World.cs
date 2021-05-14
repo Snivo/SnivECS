@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 using ECS.Exceptions;
@@ -22,13 +23,9 @@ namespace ECS
 
         public ref T GetComponent<T>(int ent)
         {
-            if (!entities.HasValue(ent))
-                throw new NullEntityException();
-
             int cmpId = GetComponentID<T>();
 
-            if (cmpId == -1)
-                throw new UnregisteredComponentException();
+            Debug.Assert(cmpId != -1, "The specified component has not been registered");
 
             return ref ((ComponentSet<T>)components[cmpId]).Get(ent);
         }
@@ -39,8 +36,7 @@ namespace ECS
 
         public bool EntityHasComponent(int cmp, int ent)
         {
-            if (cmp >= components.Length || cmp < 0)
-                throw new UnregisteredComponentException();
+            Debug.Assert(cmp < components.Length && cmp >= 0, "The specified component has not been registered");
 
             return components[cmp].Contains(ent);
         }
@@ -66,33 +62,24 @@ namespace ECS
 
         public int GetComponentID<T>()
         {
-            if (componentLookup.TryGetValue(typeof(T), out int ret))
-                return ret;
+            Debug.Assert(componentLookup.ContainsKey(typeof(T)), "The specified component has not been registered");
 
-            return -1;
+            return componentLookup[typeof(T)];
         }
 
         public int GetComponentID(Type t)
         {
-            if (componentLookup.TryGetValue(t, out int ret))
-                return ret;
+            Debug.Assert(componentLookup.ContainsKey(t), "The specified component has not been registered");
 
-            return -1;
+            return componentLookup[t];
         }
 
         public void AddComponent<T>(int ent, T component)
         {
-            if (!entities.HasValue(ent))
-                throw new NullEntityException();
+            Debug.Assert(entities.HasValue(ent), "The specified entity does not exist");
+            Debug.Assert(componentLookup.ContainsKey(typeof(T)), "The specified component has not been registered");
 
-            Type a = typeof(T);
-            if (componentLookup.TryGetValue(typeof(T), out int idx))
-            {
-                ComponentSet<T> set = (ComponentSet<T>)components[idx];
-                set.Add(ent, component);
-            }
-            else
-                throw new UnregisteredComponentException();
+            ((ComponentSet<T>)components[componentLookup[typeof(T)]]).Add(ent, component);
         }
 
         public void RegisterComponent<T>()
@@ -112,16 +99,10 @@ namespace ECS
 
         public void RemoveComponent<T>(int ent)
         {
-            if (!entities.HasValue(ent))
-                throw new NullEntityException();
+            Debug.Assert(componentLookup.ContainsKey(typeof(T)));
+            Debug.Assert(entities.HasValue(ent), "The specified entity does not exist");
 
-            if (componentLookup.TryGetValue(typeof(T), out int idx))
-            {
-                ComponentSet<T> set = (ComponentSet<T>)components[idx];
-                set.Remove(ent);
-            }
-            else
-                throw new UnregisteredComponentException();
+            ((ComponentSet<T>)components[componentLookup[typeof(T)]]).Remove(ent);
         }
 
         public void RemoveEntity(int ent)

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Diagnostics;
 using UnregisteredComponentException = ECS.Exceptions.UnregisteredComponentException;
 
 namespace ECS
@@ -12,32 +12,11 @@ namespace ECS
         Type[] internalTypeLookup;
         SparseSet signature;
 
-        int LookupComponent<T>()
-        {
-            if (internalTypeIDLookup.TryGetValue(typeof(T), out int idx))
-                return idx;
+        int LookupComponent<T>() => internalTypeIDLookup[typeof(T)];
 
-            return -1;
-        }
+        Type LookupType(int i) => internalTypeLookup[i];
 
-        Type LookupType(int i)
-        {
-            if (i >= internalTypeLookup.Length)
-                return null;
-
-            return internalTypeLookup[i];
-        }
-
-        int GetComponentIDFromWorld(World world, int id)
-        {
-            Type t = LookupType(id);
-
-            if (t == null) 
-                throw new UnregisteredComponentException("The component does not exist in the given signature");
-
-
-            return world.GetComponentID(t);
-        }
+        int GetComponentIDFromWorld(World world, int id) => world.GetComponentID(LookupType(id));
 
         public void Add<T>()
         {
@@ -66,11 +45,7 @@ namespace ECS
         {
             int idx = LookupComponent<T>();
 
-            if (idx == -1)
-                throw new UnregisteredComponentException("The component does not exist in the given signature");
-
             lookupGaps.AddLast(idx);
-
             signature.RemoveValue(idx);
             internalTypeLookup[idx] = null;
             internalTypeIDLookup.Remove(typeof(T));
@@ -85,9 +60,6 @@ namespace ECS
             {
                 int idx = GetComponentIDFromWorld(world, i);
 
-                if (idx == -1)
-                    return false;
-
                 if (!world.EntityHasComponent(idx, ent))
                     return false;
             }
@@ -95,15 +67,7 @@ namespace ECS
             return true;
         }
 
-        public bool HasComponent<T>()
-        {
-            int idx = LookupComponent<T>();
-
-            if (idx == -1)
-                throw new UnregisteredComponentException();
-
-            return signature.HasValue(idx);
-        }
+        public bool HasComponent<T>() => signature.HasValue(LookupComponent<T>());
 
         public static explicit operator ReadOnlyEntitySignature(EntitySignature sig) => new ReadOnlyEntitySignature(sig);
 

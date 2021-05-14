@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Diagnostics;
 using ECS.Exceptions;
 
 namespace ECS
@@ -29,8 +29,7 @@ namespace ECS
 
         public ref T Get(int entity)
         {
-            if (!entities.HasValue(entity))
-                throw new NoComponentException("Entity does not contain this component");
+            Debug.Assert(entities.HasValue(entity), "Entity does not contain this component");
 
             return ref components.GetByReference(entity);
         }
